@@ -257,6 +257,7 @@
     render()
   }
 
+  if (!location.hash && params.get('tab')) history.replaceState(null, '', `${location.pathname}#${encodeURIComponent(params.get('tab'))}`)
   window.addEventListener('hashchange', render)
   render()
   load()
