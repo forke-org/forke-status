@@ -6,46 +6,52 @@
 <title>Forke Status</title>
 <meta name="description" content="Live status of forke.space, the Forke dashboard, the Forke API and Forke Mail.">
 <link rel="icon" href="forke-mark.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #050505; --surface: #0d0d10; --surface-2: #131317; --line: rgba(255,255,255,.07); --line-strong: rgba(255,255,255,.13);
-    --ink: #f4f4f5; --ink-2: #c9c9cf; --muted: #8e8e96; --faint: #5f5f68;
-    --accent: #ff7a00; --accent-ink: #ffa347; --accent-soft: rgba(255,122,0,.12);
-    --ok: #4ade80; --ok-soft: rgba(74,222,128,.12); --warn: #fbbf24; --warn-soft: rgba(251,191,36,.12); --bad: #f87171; --bad-soft: rgba(248,113,113,.12);
-    --none: #26262c;
-  }
-  @media (prefers-color-scheme: light) {
-    :root { --bg: #f5f5f6; --surface: #fff; --surface-2: #f7f7f8; --line: rgba(15,15,20,.08); --line-strong: rgba(15,15,20,.14);
-      --ink: #111114; --ink-2: #3b3b42; --muted: #6b6b74; --faint: #9a9aa3; --accent-ink: #b85400; --accent-soft: rgba(255,122,0,.1);
-      --ok: #15803d; --ok-soft: rgba(21,128,61,.1); --warn: #b45309; --warn-soft: rgba(180,83,9,.1); --bad: #dc2626; --bad-soft: rgba(220,38,38,.09); --none: #e4e4e7; }
+    --bg: #151414; --surface: #1C1B1A; --surface-2: #22201F; --line: #f0e3de20; --line-strong: #f0e3de38;
+    --ink: #F4F4F5; --ink-2: #d4d0cd; --muted: #8E8E93; --faint: #5f5c5a;
+    --accent: #FF7A00; --accent-ink: #FFA347; --accent-soft: rgba(255,122,0,.1);
+    --ok: #4ade80; --ok-soft: rgba(74,222,128,.1); --warn: #fbbf24; --warn-soft: rgba(251,191,36,.1); --bad: #f87171; --bad-soft: rgba(248,113,113,.1);
+    --none: #2a2827;
+    color-scheme: dark;
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; background: var(--bg); color: var(--ink); }
-  body { font: 15px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+  body { font: 15px/1.5 "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
   a { color: inherit; }
-  .wrap { max-width: 920px; margin: 0 auto; padding: 0 16px; }
-  header { padding: 28px 0 8px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .wrap { position: relative; max-width: 960px; min-height: 100vh; margin: 0 auto; padding: 0 36px;
+    background-image: linear-gradient(var(--line) 50%, transparent 50%), linear-gradient(var(--line) 50%, transparent 50%);
+    background-size: 1px 32px, 1px 32px; background-repeat: repeat-y; background-position: 0 0, 100% 0; }
+  .rule { position: relative; height: 1px; margin: 0 -36px; background: var(--line); }
+  .rule::before, .rule::after { content: ""; position: absolute; top: -3px; width: 7px; height: 7px; background: var(--bg); box-shadow: inset 0 0 0 1px var(--line-strong); }
+  .rule::before { left: -3px; } .rule::after { right: -4px; }
+  @media (max-width: 640px) { .wrap { padding: 0 16px; } .rule { margin: 0 -16px; } }
+  code, .mono { font-family: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace; }
+  header { padding: 22px 0 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   .brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; }
   .brand img { width: 28px; height: 28px; border-radius: 7px; }
   .brand b { font-size: 20px; letter-spacing: -.04em; font-weight: 600; }
   .brand b span { color: var(--accent); }
   .brand em { font-style: normal; font-size: 12px; font-weight: 500; color: var(--accent-ink); background: var(--accent-soft); padding: 2px 8px; border-radius: 6px; }
   .updated { color: var(--muted); font-size: 13px; }
-  .banner { margin: 20px 0 18px; padding: 18px 20px; border-radius: 14px; display: flex; align-items: center; gap: 12px; font-weight: 600; font-size: 17px; }
+  .banner { margin: 20px 0 18px; padding: 18px 20px; border-radius: 8px; display: flex; align-items: center; gap: 12px; font-weight: 600; font-size: 17px; }
   .banner .dot { width: 12px; height: 12px; border-radius: 50%; background: currentColor; box-shadow: 0 0 0 5px color-mix(in srgb, currentColor 18%, transparent); flex: none; }
   .banner.operational { background: var(--ok-soft); color: var(--ok); }
   .banner.degraded { background: var(--warn-soft); color: var(--warn); }
   .banner.down { background: var(--bad-soft); color: var(--bad); }
   .banner.loading { background: var(--surface); color: var(--muted); }
-  nav.tabs { display: flex; gap: 4px; padding: 4px; border-radius: 12px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); overflow-x: auto; scrollbar-width: none; }
+  nav.tabs { display: flex; gap: 4px; padding: 4px; border-radius: 8px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); overflow-x: auto; scrollbar-width: none; }
   nav.tabs::-webkit-scrollbar { display: none; }
-  nav.tabs a { flex: none; display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px; border-radius: 9px; font-size: 14px; font-weight: 500; line-height: 1; color: var(--muted); text-decoration: none; white-space: nowrap; }
+  nav.tabs a { flex: none; display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px; border-radius: 6px; font-size: 14px; font-weight: 500; line-height: 1; color: var(--muted); text-decoration: none; white-space: nowrap; }
   nav.tabs a:hover { color: var(--ink); }
   nav.tabs a[aria-current="page"] { background: var(--surface-2); color: var(--ink); box-shadow: 0 0 0 1px var(--line-strong); }
   nav.tabs .pip { width: 8px; height: 8px; border-radius: 50%; background: var(--faint); }
   .pip.operational { background: var(--ok); } .pip.degraded { background: var(--warn); } .pip.down { background: var(--bad); }
   main { padding: 18px 0 40px; }
-  .card { background: var(--surface); border-radius: 14px; box-shadow: 0 0 0 1px var(--line); margin-bottom: 16px; overflow: hidden; }
+  .card { background: var(--surface); border-radius: 8px; box-shadow: 0 0 0 1px var(--line); margin-bottom: 16px; overflow: hidden; }
   .card-head { padding: 14px 18px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
   .card-head h2 { margin: 0; font-size: 14px; font-weight: 600; }
   .card-head p { margin: 2px 0 0; font-size: 12px; color: var(--muted); }
@@ -65,11 +71,11 @@
   .bars-foot { display: flex; justify-content: space-between; font-size: 12px; color: var(--faint); margin-top: 6px; }
   .grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
   @media (max-width: 720px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-  .stat { background: var(--surface-2); border-radius: 12px; padding: 14px; box-shadow: inset 0 0 0 1px var(--line); }
+  .stat { background: var(--surface-2); border-radius: 8px; padding: 14px; box-shadow: inset 0 0 0 1px var(--line); }
   .stat span { display: block; font-size: 12px; color: var(--muted); }
   .stat b { display: block; font-size: 22px; font-weight: 600; letter-spacing: -.02em; margin-top: 4px; font-variant-numeric: tabular-nums; }
   .stat small { display: block; font-size: 12px; color: var(--muted); margin-top: 2px; }
-  .seg { display: inline-flex; padding: 3px; border-radius: 10px; background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--line); }
+  .seg { display: inline-flex; padding: 3px; border-radius: 8px; background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--line); }
   .seg button { height: 28px; padding: 0 12px; border: 0; border-radius: 7px; background: transparent; color: var(--muted); font: inherit; font-size: 13px; font-weight: 500; line-height: 1; cursor: pointer; }
   .seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 0 0 1px var(--line-strong); }
   svg.chart { width: 100%; height: 120px; display: block; }
@@ -80,7 +86,7 @@
   .empty { padding: 22px 18px; color: var(--muted); font-size: 14px; text-align: center; }
   .note { font-size: 13px; color: var(--muted); margin: 0; line-height: 1.6; }
   .note b { color: var(--ink-2); font-weight: 600; }
-  footer { border-top: 1px solid var(--line); padding: 18px 0 40px; color: var(--muted); font-size: 13px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  footer { padding: 18px 0 40px; color: var(--muted); font-size: 13px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
   footer a { color: var(--accent-ink); text-decoration: none; }
 </style>
 </head>
@@ -90,9 +96,11 @@
     <a class="brand" href="https://www.forke.space"><img src="forke-mark.png" alt=""><b>forke<span>*</span></b><em>status</em></a>
     <span class="updated" id="updated">Loading…</span>
   </header>
+  <div class="rule"></div>
   <div class="banner loading" id="banner"><span class="dot"></span><span id="banner-text">Checking every service…</span></div>
   <nav class="tabs" id="tabs" aria-label="Services"></nav>
   <main id="view"></main>
+  <div class="rule"></div>
   <footer>
     <span>Checked about every 5 minutes from outside our servers.</span>
     <span><a href="https://www.forke.space">forke.space</a> · <a href="https://mail.forke.space">Forke Mail</a></span>
