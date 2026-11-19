@@ -1,0 +1,6 @@
+[
+  { "id": "website", "name": "Website", "description": "forke.space, sign-up and the blog", "url": "https://www.forke.space/", "expect": [200] },
+  { "id": "dashboard", "name": "Dashboard", "description": "dashboard.forke.space for developers and owners", "url": "https://dashboard.forke.space/signin", "expect": [200] },
+  { "id": "api", "name": "API", "description": "api.forke.space backend and code reviews", "url": "https://api.forke.space/health", "expect": [200] },
+  { "id": "mail", "name": "Forke Mail", "description": "mail.forke.space dashboard, sending API and delivery", "url": "https://mail.forke.space/healthz", "expect": [200], "metrics": "https://mail.forke.space/api/public/status" }
+]
