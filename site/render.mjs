@@ -103,10 +103,10 @@ export function renderSystems(data, offset = 0, now = new Date()) {
     const gb = bars(g.items, keys, incidents)
     const rows = g.items.map((c) => {
       const b = bars([c], keys, incidents)
-      return `<div class="comp"><div class="row"><span class="name">${esc(c.name)} ${info(c.description)}</span><span class="up">${pct(b.uptime)} uptime</span><span class="badge ${c.status}">${LABEL[c.status] || LABEL.unknown}</span></div>${b.html}</div>`
+      return `<div class="comp"><div class="row"><span class="name"><span class="label">${esc(c.name)}</span>${info(c.description)}</span><span class="up">${pct(b.uptime)} uptime</span><span class="badge ${c.status}">${LABEL[c.status] || LABEL.unknown}</span></div>${b.html}</div>`
     }).join('')
     return `<details class="group" data-group="${esc(g.id)}"${st !== 'operational' ? ' open' : ''}>
-      <summary><div class="row"><span class="name"><svg class="chev" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>${esc(g.name)} ${info(g.description)}<small>${g.items.length} components</small></span><span class="up">${pct(gb.uptime)} uptime</span><span class="badge ${st}">${LABEL[st]}</span></div>${gb.html}</summary>
+      <summary><div class="row"><span class="name"><svg class="chev" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span class="label">${esc(g.name)}</span>${info(g.description)}<small>${g.items.length} components</small></span><span class="up">${pct(gb.uptime)} uptime</span><span class="badge ${st}">${LABEL[st]}</span></div>${gb.html}</summary>
       <div class="comps">${rows}</div></details>`
   }).join('')
   return `<section class="card" id="systems"><div class="card-head"><div><h2>System status</h2><p>Daily uptime, checked from outside our servers</p></div>
@@ -125,8 +125,8 @@ export function renderMail(m, win = '7d') {
     <div class="card-body"><div class="grid">
       <div class="stat"><span>Delivered ${info('Share of sent emails the recipient’s mail server accepted.')}</span><b>${pct(w.delivery_rate)}</b><small>${(w.delivered ?? 0).toLocaleString('en-US')} of ${(w.sent ?? 0).toLocaleString('en-US')} sent</small></div>
       <div class="stat"><span>Typical delivery ${info('Time from handing the email to Amazon SES until the recipient’s server accepts it.')}</span><b>${secs(w.delivery_seconds_p50)}</b><small>95% within ${secs(w.delivery_seconds_p95)}</small></div>
-      <div class="stat"><span>Bounce rate ${info('Emails rejected because the address does not exist or cannot receive mail.')}</span><b>${pct(w.bounce_rate)}</b><small>Sending pauses above ${pct(lim.max_bounce_rate, 1)}</small></div>
-      <div class="stat"><span>Spam complaints ${info('Recipients who pressed “report spam”.')}</span><b>${pct(w.complaint_rate, 3)}</b><small>Sending pauses above ${pct(lim.max_complaint_rate, 1)}</small></div>
+      <div class="stat"><span>Bounce rate ${info('Emails rejected because the address does not exist or cannot receive mail.')}</span><b>${pct(w.bounce_rate)}</b><small>Sending pauses at ${pct(lim.max_bounce_rate, 1)}</small></div>
+      <div class="stat"><span>Spam complaints ${info('Recipients who pressed “report spam”.')}</span><b>${pct(w.complaint_rate, 3)}</b><small>Sending pauses at ${pct(lim.max_complaint_rate, 1)}</small></div>
     </div>
     <p class="note">Waiting to send right now: <b>${(m.queue?.transactional_queued ?? 0).toLocaleString('en-US')}</b> transactional and <b>${(m.queue?.broadcast_pending ?? 0).toLocaleString('en-US')}</b> broadcast emails.</p></div></section>`
 }
