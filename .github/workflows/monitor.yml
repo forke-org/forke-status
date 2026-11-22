@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
   group: monitor
@@ -23,7 +24,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
       - name: Load previous results
         run: |
           mkdir -p data
@@ -31,6 +32,7 @@ jobs:
             git show FETCH_HEAD:status.json > data/status.json || true
           fi
       - name: Check services
+        id: check
         run: node monitor/check.mjs data/status.json
       - name: Save results
         env:
@@ -45,3 +47,8 @@ jobs:
           git add status.json
           git commit -q -m "status $(date -u +%Y-%m-%dT%H:%MZ)"
           git push -q -f "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git" data
+      - name: Republish page when status changes
+        if: steps.check.outputs.changed == 'true' || github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh workflow run pages.yml --ref main
