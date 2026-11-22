@@ -1,3 +1,4 @@
 .preview/
 _site/
 data/
+.DS_Store
