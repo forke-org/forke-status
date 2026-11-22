@@ -1,3 +1,13 @@
+/**
+ * @fileoverview Forke Platform
+ * @copyright (c) 2026 Forke Inc. (https://www.forke.space/)
+ *
+ * Source-Available License (Non-Commercial / Fair Source).
+ * This source code is open for inspection, learning, and personal development.
+ * Commercial use, hosting, or resale as a paid service without an explicit
+ * commercial license from Forke Inc. is strictly prohibited.
+ */
+
 import { readFile, writeFile, mkdir, copyFile } from 'node:fs/promises'
 import { renderBanner, renderSystems, renderMail, renderIncidents, renderHistory, summaryText, esc, SITE, MAIL, SUPPORT } from './render.mjs'
 

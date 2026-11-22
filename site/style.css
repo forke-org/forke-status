@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2026 Forke Inc. (https://www.forke.space/)
+ * Source-Available License (Non-Commercial / Fair Source).
+ * Open for inspection, learning, and non-commercial development.
+ * Commercial use, hosting, or resale without authorization is strictly prohibited.
+ */
+
 :root {
   --bg: #151414; --surface: #1C1B1A; --surface-2: #22201F; --line: #f0e3de20; --line-strong: #f0e3de38;
   --ink: #F4F4F5; --ink-2: #d4d0cd; --muted: #8E8E93; --faint: #5f5c5a;
