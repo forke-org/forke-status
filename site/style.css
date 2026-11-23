@@ -170,9 +170,3 @@ dialog p { margin: 0 0 16px; color: var(--muted); font-size: 14px; }
   .grid { grid-template-columns: 1fr 1fr; }
   .stat b { font-size: 18px; }
 }
-footer nav { align-items: center; }
-footer a.wm { display: inline-flex; align-items: baseline; gap: 4px; font-size: 16px; letter-spacing: -0.04em; line-height: 1; color: var(--ink); }
-footer a.wm b { font-weight: 600; }
-footer a.wm b span { color: var(--accent); }
-footer a.wm em { font-style: normal; font-weight: 400; color: var(--muted); }
-footer a.wm:hover b { color: var(--accent-ink); }

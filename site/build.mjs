@@ -80,7 +80,7 @@ ${body}
   <div class="rule"></div>
   <footer>
     <span id="updated">Checked ${esc(new Date(updated).toISOString().slice(0, 16).replace('T', ' '))} UTC</span>
-    <nav><a href="/history/">Incident history</a><a href="/status.json">status.json</a><a class="wm" href="https://www.forke.space" aria-label="Forke"><b>forke<span>*</span></b></a><a class="wm" href="${MAIL}" aria-label="Forke Mail"><b>forke<span>*</span></b><em>mail</em></a><a href="mailto:${SUPPORT}">${SUPPORT}</a></nav>
+    <nav><a href="/history/">Incident history</a><a href="/status.json">status.json</a><a href="https://www.forke.space">forke.space</a><a href="${MAIL}">forke mail</a><a href="mailto:${SUPPORT}">${SUPPORT}</a></nav>
   </footer>
 </div>
 <dialog id="subscribe" aria-labelledby="subscribe-title">
