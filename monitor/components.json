@@ -5,21 +5,80 @@
       "name": "Email sending",
       "description": "Getting emails out of Forke Mail and on their way to inboxes.",
       "components": [
-        { "id": "transactional", "name": "Transactional API", "description": "One-to-one emails sent with the API, like sign-in links and receipts.", "source": "mail" },
-        { "id": "broadcasts", "name": "Broadcasts", "description": "Newsletters and announcements sent to a list of contacts.", "source": "mail" },
-        { "id": "workflows", "name": "Workflows and scheduled emails", "description": "Automated emails that wait and send after an event, like a welcome series.", "source": "mail" },
-        { "id": "smtp", "name": "SMTP", "description": "Sending through smtp.mail.forke.space on ports 465 and 587.", "source": "mail", "tls": { "host": "smtp.mail.forke.space", "port": 465 } }
+        {
+          "id": "transactional",
+          "name": "Transactional API",
+          "description": "One-to-one emails sent with the API, like sign-in links and receipts.",
+          "source": "mail"
+        },
+        {
+          "id": "broadcasts",
+          "name": "Broadcasts",
+          "description": "Newsletters and announcements sent to a list of contacts.",
+          "source": "mail"
+        },
+        {
+          "id": "workflows",
+          "name": "Workflows and scheduled emails",
+          "description": "Automated emails that wait and send after an event, like a welcome series.",
+          "source": "mail"
+        },
+        {
+          "id": "smtp",
+          "name": "SMTP",
+          "description": "Sending through smtp.mail.forke.space on ports 465 and 587.",
+          "source": "mail",
+          "tls": {
+            "host": "smtp.mail.forke.space",
+            "port": 465
+          }
+        }
       ]
     },
     {
       "id": "mail",
       "name": "Forke Mail platform",
-      "description": "Everything around sending: the API, the dashboard, delivery events and webhooks.",
+      "description": "Everything around sending: the API, the dashboard, the MCP server for AI apps, delivery events and webhooks.",
       "components": [
-        { "id": "mail_api", "name": "Forke Mail API", "description": "api requests to mail.forke.space.", "url": "https://mail.forke.space/healthz", "expect": [200] },
-        { "id": "mail_dashboard", "name": "Forke Mail dashboard", "description": "The mail.forke.space dashboard.", "url": "https://mail.forke.space/login/", "expect": [200] },
-        { "id": "email_events", "name": "Email events", "description": "Delivered, bounced and complaint updates coming back from inbox providers.", "source": "mail" },
-        { "id": "webhooks", "name": "Webhooks", "description": "Event notifications sent to your own endpoints.", "source": "mail" }
+        {
+          "id": "mail_api",
+          "name": "Forke Mail API",
+          "description": "api requests to mail.forke.space.",
+          "url": "https://mail.forke.space/healthz",
+          "expect": [
+            200
+          ]
+        },
+        {
+          "id": "mail_dashboard",
+          "name": "Forke Mail dashboard",
+          "description": "The mail.forke.space dashboard.",
+          "url": "https://mail.forke.space/login/",
+          "expect": [
+            200
+          ]
+        },
+        {
+          "id": "mcp",
+          "name": "MCP server and AI connectors",
+          "description": "mail.forke.space/mcp and the sign-in that lets Claude, ChatGPT, Cursor and other AI apps connect.",
+          "url": "https://mail.forke.space/.well-known/oauth-authorization-server",
+          "expect": [
+            200
+          ]
+        },
+        {
+          "id": "email_events",
+          "name": "Email events",
+          "description": "Delivered, bounced and complaint updates coming back from inbox providers.",
+          "source": "mail"
+        },
+        {
+          "id": "webhooks",
+          "name": "Webhooks",
+          "description": "Event notifications sent to your own endpoints.",
+          "source": "mail"
+        }
       ]
     },
     {
@@ -27,9 +86,33 @@
       "name": "Forke",
       "description": "The Forke website, dashboard and API.",
       "components": [
-        { "id": "website", "name": "Website", "description": "forke.space, sign-up and the blog.", "url": "https://www.forke.space/", "expect": [200] },
-        { "id": "dashboard", "name": "Dashboard", "description": "dashboard.forke.space for developers and owners.", "url": "https://dashboard.forke.space/signin", "expect": [200] },
-        { "id": "api", "name": "Forke API", "description": "api.forke.space, the backend and code reviews.", "url": "https://api.forke.space/health", "expect": [200] }
+        {
+          "id": "website",
+          "name": "Website",
+          "description": "forke.space, sign-up and the blog.",
+          "url": "https://www.forke.space/",
+          "expect": [
+            200
+          ]
+        },
+        {
+          "id": "dashboard",
+          "name": "Dashboard",
+          "description": "dashboard.forke.space for developers and owners.",
+          "url": "https://dashboard.forke.space/signin",
+          "expect": [
+            200
+          ]
+        },
+        {
+          "id": "api",
+          "name": "Forke API",
+          "description": "api.forke.space, the backend and code reviews.",
+          "url": "https://api.forke.space/health",
+          "expect": [
+            200
+          ]
+        }
       ]
     }
   ],

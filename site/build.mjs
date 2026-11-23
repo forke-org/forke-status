@@ -102,7 +102,7 @@ const home = page({
   path: '/',
   pageId: 'home',
   title: 'Forke Status: live uptime for Forke and Forke Mail',
-  description: `${statusWord}. Live status and 90-day uptime for forke.space, the Forke dashboard and API, and Forke Mail sending, SMTP, webhooks and email delivery.`,
+  description: `${statusWord}. Live status and 90-day uptime for forke.space, the Forke dashboard and API, and Forke Mail sending, SMTP, the MCP server, webhooks and email delivery.`,
   body: `  <div id="banner">${renderBanner(data)}</div>
   <main>
     <div id="systems-slot">${renderSystems(data, 0, now)}</div>
@@ -126,7 +126,7 @@ const history = page({
 
 const llms = `# Forke Status
 
-> Live status of Forke (forke.space, the Forke dashboard and API) and Forke Mail (sending API, broadcasts, workflows, SMTP, email events and webhooks). Checked from outside our servers.
+> Live status of Forke (forke.space, the Forke dashboard and API) and Forke Mail (sending API, broadcasts, workflows, SMTP, the MCP server for AI apps, email events and webhooks). Checked from outside our servers.
 
 Current status: ${statusWord} (as of ${updated}).
 
