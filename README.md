@@ -10,4 +10,6 @@ Public status page for Forke at https://status.forke.space.
 
 Preview locally: `node site/build.mjs <status.json> .preview`, then open `.preview/index.html` through any static server, adding `?data=/status.json` to read the local file.
 
+GitHub throttles scheduled workflows, so `/etc/cron.d/forke-status-trigger` on the Forke server runs `/opt/forke/scripts/status-trigger.sh` every 5 minutes to dispatch `monitor.yml`. It does nothing until `/opt/forke/env/status-trigger.env` holds `GITHUB_TOKEN` (a fine-grained token for this repository with Actions read and write).
+
 Every `/status` path on Forke's domains redirects here.
