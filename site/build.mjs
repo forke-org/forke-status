@@ -68,7 +68,7 @@ function page({ path, title, description, body, pageId }) {
 <body data-page="${pageId}">
 <div class="wrap">
   <header>
-    <a class="brand" href="/"><img src="/forke-mark.png" alt="" width="28" height="28"><b>forke<span>*</span></b><em>status</em></a>
+    <a class="brand" href="/" aria-label="Forke status"><b>forke<span>*</span></b><em>status</em></a>
     <div class="actions">
       <a class="button" href="mailto:${SUPPORT}?subject=Problem%20with%20Forke">Report a problem</a>
       <a class="button primary" href="#subscribe" data-open-subscribe>Subscribe to updates</a>
