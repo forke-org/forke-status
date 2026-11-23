@@ -14,6 +14,7 @@ import tls from 'node:tls'
 const DATA = process.argv[2] || 'data/status.json'
 const CONFIG = JSON.parse(await readFile(new URL('./components.json', import.meta.url)))
 const NOTES = JSON.parse(await readFile(new URL('./notes.json', import.meta.url)))
+const FALSE_ALARMS = JSON.parse(await readFile(new URL('./false-alarms.json', import.meta.url)))
 const UA = 'ForkeStatus/2.0 (+https://status.forke.space)'
 const DAYS = 366
 const SAMPLES = 288
@@ -112,6 +113,18 @@ function migrate(data) {
 let data = {}
 try { data = JSON.parse(await readFile(DATA, 'utf8')) } catch {}
 data = migrate(data)
+
+const falseAlarm = (iso) => FALSE_ALARMS.some((prefix) => iso.startsWith(prefix))
+data.incidents = data.incidents.filter((i) => !falseAlarm(i.started_at))
+for (const comp of Object.values(data.components)) {
+  const dropped = comp.samples.filter((s) => s.status === 'down' && falseAlarm(s.t))
+  if (!dropped.length) continue
+  comp.samples = comp.samples.filter((s) => !dropped.includes(s))
+  for (const s of dropped) {
+    const day = comp.days[s.t.slice(0, 10)]
+    if (day) { day.checks -= 1; day.down -= 1 }
+  }
+}
 const signature = (d) => [d.status, ...d.incidents.filter((i) => !i.resolved_at).map((i) => i.id + i.impact)].join('|')
 const before = signature(data)
 
