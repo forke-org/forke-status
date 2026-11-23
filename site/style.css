@@ -170,3 +170,10 @@ dialog p { margin: 0 0 16px; color: var(--muted); font-size: 14px; }
   .grid { grid-template-columns: 1fr 1fr; }
   .stat b { font-size: 18px; }
 }
+
+:where(*)::-webkit-scrollbar:horizontal { height: 6px; }
+:where(*)::-webkit-scrollbar-thumb:horizontal { background-color: transparent; transition: background-color 0.2s; }
+:where(*):hover::-webkit-scrollbar-thumb:horizontal,
+:where(*):focus-within::-webkit-scrollbar-thumb:horizontal { background-color: rgba(255, 122, 0, 0.7); }
+:where(pre, .overflow-x-auto, .overflow-x-scroll, .table) { scrollbar-color: transparent transparent; }
+:where(pre, .overflow-x-auto, .overflow-x-scroll, .table):is(:hover, :focus-within) { scrollbar-color: rgba(255, 122, 0, 0.7) transparent; }
