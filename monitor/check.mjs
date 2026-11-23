@@ -33,11 +33,22 @@ async function probe(url, expect) {
   }
 }
 
+const RETRY_DELAYS = [10000, 20000]
+const CONTROLS = ['https://www.google.com/generate_204', 'https://api.github.com/zen', 'https://www.cloudflare.com/cdn-cgi/trace']
+
 async function probeHTTP(c) {
-  const first = await probe(c.url, c.expect)
-  if (first.status === 'operational') return first
-  await new Promise((r) => setTimeout(r, 5000))
-  return probe(c.url, c.expect)
+  let result = await probe(c.url, c.expect)
+  for (const delay of RETRY_DELAYS) {
+    if (result.status === 'operational') break
+    await new Promise((r) => setTimeout(r, delay))
+    result = await probe(c.url, c.expect)
+  }
+  return result
+}
+
+async function checkerOnline() {
+  const results = await Promise.all(CONTROLS.map((url) => probe(url, [200, 204])))
+  return results.some((r) => r.status !== 'down')
 }
 
 function probeTLS({ host, port }) {
@@ -72,7 +83,7 @@ const LAG_REASON = {
 
 async function check(c, mail, mailAPI) {
   if (c.url) return probeHTTP(c)
-  if (!mail) return mailAPI.status === 'down' ? { status: 'down', reason: 'Forke Mail is not responding' } : null
+  if (!mail) return mailAPI.status === 'down' ? { status: 'down', reason: 'Forke Mail is not responding', inherited: true } : null
   const m = (mail.components || []).find((x) => x.id === c.id)
   if (!m || m.status === 'not_enabled') return { status: 'hidden' }
   if (c.tls) {
@@ -109,8 +120,13 @@ const day = now.toISOString().slice(0, 10)
 const mail = await metrics()
 const all = CONFIG.groups.flatMap((g) => g.components.map((c) => ({ ...c, group: g.id })))
 const results = {}
-const mailAPI = all.find((c) => c.id === 'mail_api')
-results.mail_api = await probeHTTP(mailAPI)
+const http = all.filter((c) => c.url)
+const probed = await Promise.all(http.map((c) => probeHTTP(c)))
+http.forEach((c, i) => { results[c.id] = probed[i] })
+if (http.every((c) => results[c.id].status === 'down') && !(await checkerOnline())) {
+  console.log('This runner cannot reach the internet; nothing recorded.')
+  process.exit(0)
+}
 for (const c of all) {
   if (!results[c.id]) results[c.id] = await check(c, mail, results.mail_api)
 }
@@ -119,8 +135,13 @@ for (const c of all) {
   const r = results[c.id]
   const comp = data.components[c.id] ||= { id: c.id, days: {}, samples: [] }
   Object.assign(comp, { id: c.id, name: c.name, group: c.group, description: c.description })
+  const openIncident = data.incidents.find((i) => i.component === c.id && !i.resolved_at)
   if (!r) { comp.status ||= 'unknown'; continue }
-  if (r.status === 'hidden') { comp.status = 'hidden'; continue }
+  if (r.status === 'hidden' || (r.inherited && comp.status === 'hidden')) {
+    comp.status = 'hidden'
+    if (openIncident) openIncident.resolved_at = now.toISOString()
+    continue
+  }
   const prev = comp.samples.at(-1)
   comp.samples.push({ t: now.toISOString(), status: r.status, ms: r.ms ?? null })
   comp.samples = comp.samples.slice(-SAMPLES)
@@ -132,9 +153,9 @@ for (const c of all) {
   comp.status = r.status
   comp.lastCheck = { t: now.toISOString(), ms: r.ms ?? null, reason: r.reason || '' }
 
-  const open = data.incidents.find((i) => i.component === c.id && !i.resolved_at)
+  const open = openIncident
   const bad = r.status !== 'operational'
-  const confirmed = r.status === 'down' || (prev && prev.status !== 'operational')
+  const confirmed = prev && prev.status !== 'operational' && !r.inherited
   if (bad && !open && confirmed) {
     data.incidents.unshift({ id: `${c.id}-${now.toISOString().replace(/[-:]/g, '').slice(0, 13)}`, component: c.id, name: c.name, impact: r.status, started_at: now.toISOString(), resolved_at: null, reason: r.reason })
   }
