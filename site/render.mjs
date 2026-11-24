@@ -69,10 +69,10 @@ function uptime(rows) {
   return checks ? (checks - down) / checks : null
 }
 
-function dayClass(t) {
+function dayClass(t, hits) {
   if (!t.checks) return 'none'
   if (t.down / t.checks >= 0.05) return 'down'
-  if (t.down || t.degraded) return 'degraded'
+  if (hits.length || (t.down + t.degraded) / t.checks >= 0.02) return 'degraded'
   return 'operational'
 }
 
@@ -80,9 +80,11 @@ function bars(items, keys, incidents) {
   const rows = tally(items, keys)
   const ids = new Set(items.map((c) => c.id))
   const cells = rows.map((t) => {
-    const cls = dayClass(t)
     const hits = incidents.filter((i) => ids.has(i.component) && i.started_at.slice(0, 10) <= t.key && (i.resolved_at || '9').slice(0, 10) >= t.key)
-    const tip = [fmtDay(t.key), !t.checks ? 'No data' : cls === 'operational' ? 'No downtime' : `${pct((t.checks - t.down) / t.checks)} uptime`, ...hits.map((i) => i.title || `${i.name}: ${i.reason || LABEL[i.impact]}`)].join('\n')
+    const cls = dayClass(t, hits)
+    const blips = t.down + t.degraded
+    const summary = !t.checks ? 'No data' : cls !== 'operational' ? `${pct((t.checks - t.down) / t.checks)} uptime` : blips ? `No downtime (${blips} slow ${blips === 1 ? 'check' : 'checks'}, no incident)` : 'No downtime'
+    const tip = [fmtDay(t.key), summary, ...hits.map((i) => i.title || `${i.name}: ${i.reason || LABEL[i.impact]}`)].join('\n')
     return `<i class="${cls}" data-tip="${esc(tip)}"></i>`
   })
   return { html: `<div class="bars">${cells.join('')}</div>`, uptime: uptime(rows) }
