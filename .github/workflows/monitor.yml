@@ -19,7 +19,7 @@ concurrency:
 jobs:
   check:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -46,11 +46,14 @@ jobs:
           git config user.email "status@forke.space"
           git add status.json
           git commit -q -m "status $(date -u +%Y-%m-%dT%H:%MZ)"
-          for wait in 5 10 0; do
+          # GitHub sometimes answers pushes with a 500 for a minute or so. Retry for about
+          # two minutes; if it is still down, skip this save instead of failing the run.
+          # The next run, five minutes later, checks everything again and saves.
+          for wait in 10 20 30 60 0; do
             git push -q -f "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git" data && exit 0
             [ "$wait" -gt 0 ] && { echo "push failed, retrying in ${wait}s"; sleep "$wait"; }
           done
-          exit 1
+          echo "::warning::GitHub rejected the push of status.json; this run's results were not saved"
       - name: Republish page when status changes
         if: steps.check.outputs.changed == 'true' || github.event_name == 'push'
         env:
