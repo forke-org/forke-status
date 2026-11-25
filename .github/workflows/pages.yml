@@ -49,3 +49,9 @@ jobs:
       - id: deployment_retry
         if: steps.deployment.outcome == 'failure'
         uses: actions/deploy-pages@v4
+        continue-on-error: true
+      # GitHub Pages sometimes answers with a 500 for a while. The page republishes every
+      # 30 minutes anyway, so a GitHub-side failure is a warning, not a failed run.
+      - name: Note a GitHub Pages outage
+        if: steps.deployment.outcome == 'failure' && steps.deployment_retry.outcome == 'failure'
+        run: echo "::warning::GitHub Pages rejected both deploy attempts; the next scheduled run will publish."
