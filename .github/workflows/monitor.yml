@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ['monitor/**', '.github/workflows/monitor.yml']
+    paths: ['monitor/**', '.github/workflows/monitor.yml', '.github/scripts/**']
 
 permissions:
   contents: write
@@ -16,25 +16,43 @@ concurrency:
   group: monitor
   cancel-in-progress: false
 
+# Every step that talks to GitHub retries, and if GitHub is still having trouble the
+# run ends with a warning instead of failing. The next run, five minutes later, catches up.
+# Only a real problem in our own code (check.mjs) fails the run.
 jobs:
   check:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - id: checkout
+        uses: actions/checkout@v4
+        continue-on-error: true
+      - if: steps.checkout.outcome == 'failure'
+        run: sleep 30
+      - id: checkout_retry
+        if: steps.checkout.outcome == 'failure'
+        uses: actions/checkout@v4
+        continue-on-error: true
+      - id: ready
+        run: |
+          if [ -f monitor/check.mjs ]; then echo "ok=true" >> "$GITHUB_OUTPUT"
+          else echo "::warning::GitHub could not provide the code; the next run will check again."; fi
+      # Node is already installed on the runner, so a failed download here is harmless.
+      - if: steps.ready.outputs.ok == 'true'
+        uses: actions/setup-node@v4
+        continue-on-error: true
         with:
           node-version: 22
       - name: Load previous results
-        run: |
-          mkdir -p data
-          if git fetch --depth=1 origin data 2>/dev/null; then
-            git show FETCH_HEAD:status.json > data/status.json || true
-          fi
+        id: load
+        if: steps.ready.outputs.ok == 'true'
+        run: .github/scripts/load-status.sh
       - name: Check services
         id: check
+        if: steps.ready.outputs.ok == 'true' && steps.load.outputs.skip != 'true'
         run: node monitor/check.mjs data/status.json
       - name: Save results
+        if: steps.check.outcome == 'success'
         env:
           TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -46,16 +64,18 @@ jobs:
           git config user.email "status@forke.space"
           git add status.json
           git commit -q -m "status $(date -u +%Y-%m-%dT%H:%MZ)"
-          # GitHub sometimes answers pushes with a 500 for a minute or so. Retry for about
-          # two minutes; if it is still down, skip this save instead of failing the run.
-          # The next run, five minutes later, checks everything again and saves.
           for wait in 10 20 30 60 0; do
             git push -q -f "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git" data && exit 0
             [ "$wait" -gt 0 ] && { echo "push failed, retrying in ${wait}s"; sleep "$wait"; }
           done
           echo "::warning::GitHub rejected the push of status.json; this run's results were not saved"
       - name: Republish page when status changes
-        if: steps.check.outputs.changed == 'true' || github.event_name == 'push'
+        if: steps.check.outcome == 'success' && (steps.check.outputs.changed == 'true' || github.event_name == 'push')
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh workflow run pages.yml --ref main
+        run: |
+          for wait in 10 30 0; do
+            gh workflow run pages.yml --ref main && exit 0
+            [ "$wait" -gt 0 ] && sleep "$wait"
+          done
+          echo "::warning::Could not trigger a republish; the page republishes on its own every 30 minutes."
