@@ -3,7 +3,7 @@ name: Publish page
 on:
   push:
     branches: [main]
-    paths: ['site/**', '.github/workflows/pages.yml']
+    paths: ['site/**', '.github/workflows/pages.yml', '.github/scripts/**']
   schedule:
     - cron: '7,37 * * * *'
   workflow_dispatch:
@@ -15,43 +15,81 @@ permissions:
 
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
+# Every step that talks to GitHub retries once, and if GitHub is still having trouble the
+# run ends with a warning instead of failing; the page republishes every 30 minutes anyway.
+# Only a real problem in our own code (site/build.mjs) fails the run.
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url || steps.deployment_retry.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - id: checkout
+        uses: actions/checkout@v4
+        continue-on-error: true
+      - if: steps.checkout.outcome == 'failure'
+        run: sleep 30
+      - id: checkout_retry
+        if: steps.checkout.outcome == 'failure'
+        uses: actions/checkout@v4
+        continue-on-error: true
+      - id: ready
+        run: |
+          if [ -f site/build.mjs ]; then echo "ok=true" >> "$GITHUB_OUTPUT"
+          else echo "::warning::GitHub could not provide the code; the next scheduled run will publish."; fi
+      - if: steps.ready.outputs.ok == 'true'
+        uses: actions/setup-node@v4
+        continue-on-error: true
         with:
           node-version: 22
       - name: Load status
-        run: |
-          mkdir -p data
-          if git fetch --depth=1 origin data 2>/dev/null; then
-            git show FETCH_HEAD:status.json > data/status.json || true
-          fi
+        id: load
+        if: steps.ready.outputs.ok == 'true'
+        run: .github/scripts/load-status.sh
       - name: Build
+        id: build
+        if: steps.ready.outputs.ok == 'true' && steps.load.outputs.skip != 'true'
         run: node site/build.mjs data/status.json _site
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+
+      - id: upload
+        if: steps.build.outcome == 'success'
+        uses: actions/upload-pages-artifact@v3
+        continue-on-error: true
         with:
           path: _site
+      - if: steps.upload.outcome == 'failure'
+        run: sleep 30
+      - id: upload_retry
+        if: steps.upload.outcome == 'failure'
+        uses: actions/upload-pages-artifact@v3
+        continue-on-error: true
+        with:
+          path: _site
+          name: github-pages-retry
+      - id: artifact
+        if: steps.build.outcome == 'success'
+        run: |
+          if [ "${{ steps.upload.outcome }}" = "success" ]; then echo "name=github-pages" >> "$GITHUB_OUTPUT"
+          elif [ "${{ steps.upload_retry.outcome }}" = "success" ]; then echo "name=github-pages-retry" >> "$GITHUB_OUTPUT"
+          else echo "::warning::GitHub would not accept the page files; the next scheduled run will publish."; fi
+
       - id: deployment
+        if: steps.artifact.outputs.name != ''
         uses: actions/deploy-pages@v4
         continue-on-error: true
-      - name: Wait before retrying the deploy
-        if: steps.deployment.outcome == 'failure'
+        with:
+          artifact_name: ${{ steps.artifact.outputs.name }}
+      - if: steps.deployment.outcome == 'failure'
         run: sleep 30
       - id: deployment_retry
         if: steps.deployment.outcome == 'failure'
         uses: actions/deploy-pages@v4
         continue-on-error: true
-      # GitHub Pages sometimes answers with a 500 for a while. The page republishes every
-      # 30 minutes anyway, so a GitHub-side failure is a warning, not a failed run.
-      - name: Note a GitHub Pages outage
-        if: steps.deployment.outcome == 'failure' && steps.deployment_retry.outcome == 'failure'
+        with:
+          artifact_name: ${{ steps.artifact.outputs.name }}
+      - if: steps.deployment.outcome == 'failure' && steps.deployment_retry.outcome == 'failure'
         run: echo "::warning::GitHub Pages rejected both deploy attempts; the next scheduled run will publish."
